@@ -3,6 +3,14 @@
   <component name="CopilotDiffPersistence">
     <option name="pendingDiffs">
       <map>
+        <entry key="$PROJECT_DIR$/README.md">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/README.md" />
+              <option name="updatedContent" value="# 强化学习算法实现项目&#10;&#10;本项目包含了多个经典强化学习算法的PyTorch实现，从简单的多臂赌博机到复杂的深度强化学习算法。每个实现都包含详细的注释和说明，适合学习和研究使用。&#10;&#10;## 项目结构&#10;&#10;- `demo_01_multi_arm_bandit.py`: 多臂赌博机算法实现&#10;- `demo_02_MDP.py`: 马尔可夫决策过程(MDP)的基本概念实现&#10;- `demo_03_DP.py`: 动态规划方法实现&#10;- `demo_04_env.py`: 强化学习环境实现&#10;- `demo_05_dyna_Q.py`: Dyna-Q算法实现&#10;- `demo_06_DQN.py`: 深度Q网络(DQN)算法实现&#10;- `demo_07_double_DQN.py`: Double DQN算法实现&#10;- `demo_08_dueling_DQN.py`: Dueling DQN算法实现&#10;- `rl_utils.py`: 强化学习工具函数库&#10;&#10;## 环境要求&#10;&#10;- Python 3.6+&#10;- PyTorch 1.0+&#10;- NumPy&#10;- Gym&#10;- Matplotlib&#10;- tqdm&#10;&#10;可以使用以下命令安装所需依赖：&#10;```bash&#10;pip install torch numpy gym matplotlib tqdm&#10;```&#10;&#10;## 算法说明&#10;&#10;### 1. 多臂赌博机 (Multi-Armed Bandit)&#10;实现了探索与利用的平衡策略，包括：&#10;- ε-贪婪策略&#10;- UCB算法&#10;- Thompson采样&#10;&#10;### 2. 马尔可夫决策过程 (MDP)&#10;包含MDP的基本要素实现：&#10;- 状态转移&#10;- 奖励函数&#10;- 价值函数&#10;&#10;### 3. 动态规划 (Dynamic Programming)&#10;实现了基于动态规划的算法：&#10;- 策略迭代&#10;- 价值迭代&#10;&#10;### 4. Dyna-Q&#10;实现了基于模型的强化学习算法Dyna-Q，包括：&#10;- Q学习更新&#10;- 模型学习&#10;- 规划更新&#10;&#10;### 5. DQN (Deep Q-Network)&#10;实现了DQN算法的核心组件：&#10;- 经验回放&#10;- 目标网络&#10;- ε-贪婪探索&#10;&#10;### 6. Double DQN&#10;在DQN的基础上改进，解决过度估计问题：&#10;- 分离动作选择和评估&#10;- 更稳定的Q值估计&#10;&#10;### 7. Dueling DQN&#10;实现了基于价值分解的DQN改进：&#10;- 状态价值流&#10;- 动作优势流&#10;- 优势函数归一化&#10;&#10;## 使用方法&#10;&#10;每个文件都可以独立运行，例如运行Dueling DQN：&#10;```bash&#10;python demo_08_dueling_DQN.py&#10;```&#10;&#10;## 关键特性&#10;&#10;1. 代码结构清晰，注释详细&#10;2. 实现了完整的训练和评估流程&#10;3. 包含可视化工具，方便分析算法性能&#10;4. 使用PyTorch实现，支持GPU加速&#10;&#10;## 实验结果&#10;&#10;各算法在典型环境（如CartPole-v0、Pendulum-v1）上都能达到良好的性能：&#10;- DQN和其变体能在CartPole-v0环境中实现稳定控制&#10;- Double DQN能有效缓解Q值过估计问题&#10;- Dueling DQN在某些任务中能获得更好的学习效率&#10;&#10;## 贡献指南&#10;&#10;欢迎提交Issue和Pull Request来改进代码和文档。在提交代码时请确保：&#10;1. 代码风格符合PEP 8规范&#10;2. 添加适当的注释和文档&#10;3. 确保代码可以正常运行&#10;&#10;## 参考资料&#10;&#10;- Sutton &amp; Barto的《强化学习：简介》&#10;- Deep Q-Network相关论文&#10;- OpenAI Gym文档&#10;&#10;## 许可证&#10;&#10;本项目采用MIT许可证。" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/demo_08_dueling_DQN.py">
           <value>
             <PendingDiffInfo>
