@@ -12,6 +12,7 @@
 - `demo_06_DQN.py`: 深度Q网络(DQN)算法实现
 - `demo_07_double_DQN.py`: Double DQN算法实现
 - `demo_08_dueling_DQN.py`: Dueling DQN算法实现
+- `demo_09_REINFORCE.py`: REINFORCE (策略梯度)算法实现
 - `rl_utils.py`: 强化学习工具函数库
 
 ## 环境要求
@@ -70,11 +71,18 @@ pip install torch numpy gym matplotlib tqdm
 - 动作优势流
 - 优势函数归一化
 
+### 8. REINFORCE
+实现了基础的策略梯度算法REINFORCE：
+- 策略网络直接输出动作概率
+- 蒙特卡洛采样估计回报
+- 基于轨迹的梯度更新
+- 无基线的策略优化
+
 ## 使用方法
 
-每个文件都可以独立运行，例如运行Dueling DQN：
+每个文件都可以独立运行，例如运行REINFORCE算法：
 ```bash
-python demo_08_dueling_DQN.py
+python demo_09_REINFORCE.py
 ```
 
 ## 关键特性
@@ -83,13 +91,15 @@ python demo_08_dueling_DQN.py
 2. 实现了完整的训练和评估流程
 3. 包含可视化工具，方便分析算法性能
 4. 使用PyTorch实现，支持GPU加速
+5. 提供详细的算法实现文档
 
 ## 实验结果
 
-各算法在典型环境（如CartPole-v0、Pendulum-v1）上都能达到良好的性能：
-- DQN和其变体能在CartPole-v0环境中实现稳定控制
+各算法在典型环境（如CartPole-v1）上都能达到良好的性能：
+- DQN和其变体能在CartPole环境中实现稳定控制
 - Double DQN能有效缓解Q值过估计问题
 - Dueling DQN在某些任务中能获得更好的学习效率
+- REINFORCE能直接学习确定性或随机策略
 
 ## 贡献指南
 
@@ -102,7 +112,9 @@ python demo_08_dueling_DQN.py
 
 - Sutton & Barto的《强化学习：简介》
 - Deep Q-Network相关论文
+- Policy Gradient方法相关论文
 - OpenAI Gym文档
+- PyTorch文档
 
 ## 许可证
 
