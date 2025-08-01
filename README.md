@@ -13,18 +13,27 @@
 - `demo_07_double_DQN.py`: Double DQN算法实现
 - `demo_08_dueling_DQN.py`: Dueling DQN算法实现
 - `demo_09_REINFORCE.py`: REINFORCE (策略梯度)算法实现
+- `demo_10_Actor_Critic.py`: Actor-Critic算法实现
 - `rl_utils.py`: 强化学习工具函数库
 
 ## 环境要求
 
 - Python 3.6+
 - PyTorch 1.0+
+- Gym 0.26.2+
 - NumPy
-- Gym
 - Matplotlib
 - tqdm
 
-可以使用以下命令安装所需依赖：
+## 安装指南
+
+1. 创建虚拟环境（推荐使用conda）:
+```bash
+conda create -n rl_env python=3.8
+conda activate rl_env
+```
+
+2. 安装依赖包:
 ```bash
 pip install torch numpy gym matplotlib tqdm
 ```
@@ -77,6 +86,12 @@ pip install torch numpy gym matplotlib tqdm
 - 蒙特卡洛采样估计回报
 - 基于轨迹的梯度更新
 - 无基线的策略优化
+
+### 9. Actor-Critic
+实现了Actor-Critic算法：
+- 同时训练策略网络和价值网络
+- 使用时间差分法更新
+- 结合了策略梯度和值函数逼近的优点
 
 ## 使用方法
 
