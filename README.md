@@ -17,7 +17,7 @@
 - `demo_08_dueling_DQN.py`: 决斗DQN网络结构
 
 ### 高级策略梯度方法
-- `demo_09_REINFORCE.py`: REINFORCE算法（���础策略梯度）
+- `demo_09_REINFORCE.py`: REINFORCE算法（基础策略梯度）
 - `demo_10_Actor_Critic.py`: Actor-Critic架构实现
 - `demo_11_TRPO_CartPole.py`: TRPO算法（信任区域策略优化）
 
