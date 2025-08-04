@@ -114,7 +114,7 @@ def train_on_policy_agent(env, agent, num_episodes):
                 done = False  # 回合是否结束的标志
                 while not done:  # 一个回合的循环
                     action = agent.take_action(state)
-                    # 新版本gym的step方法返回5个值
+                    # gymnasium的step方法返回5个值
                     next_state, reward, terminated, truncated, _ = env.step(action)
                     done = terminated or truncated  # 合并两种终止情况
                     transition_dict['states'].append(state)
@@ -157,14 +157,15 @@ def train_off_policy_agent(env, agent, num_episodes, replay_buffer, minimal_size
         with tqdm(total=int(num_episodes/10), desc='Iteration %d' % i) as pbar:
             for i_episode in range(int(num_episodes/10)):
                 episode_return = 0  # 记录当前回合的累积奖励
-                state = env.reset()  # 重置环境，获取初始状态
+                state, _ = env.reset()  # 重置环境，获取初始状态
                 done = False  # 回合结束标志
                 # 一个回合的交互循环
                 while not done:
                     # 智能体根据当前状态选择动作
                     action = agent.take_action(state)
-                    # 环境交互，获取next_state, reward等信息
-                    next_state, reward, done, _ = env.step(action)
+                    # 环境交互，获取next_state, reward等信息，使用gymnasium API
+                    next_state, reward, terminated, truncated, _ = env.step(action)
+                    done = terminated or truncated  # 合并两种终止情况
                     # 将transition存储到回放池中
                     replay_buffer.add(state, action, reward, next_state, done)
                     state = next_state  # 更新状态
@@ -207,6 +208,8 @@ def compute_advantage(gamma, lmbda, td_delta):
         td_delta: torch.Tensor, 时间差分误差
 
     Returns:
+        torch.Tensor: 计算得到的优势函数值
+    """
     td_delta = td_delta.detach().numpy()
     advantage_list = []
     advantage = 0.0

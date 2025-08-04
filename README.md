@@ -242,11 +242,8 @@ alpha = 0.5            # 线性搜索步长衰减
 # 安装基础依赖
 pip install torch numpy matplotlib tqdm
 
-# 安装新版本gym（推荐）
+# 安装gymnasium库
 pip install gymnasium[classic_control]
-
-# 或安装旧版本gym
-pip install gym
 ```
 
 #### 5.2 运行离散动作版本（CartPole）
@@ -409,11 +406,8 @@ torch.nn.init.orthogonal_(layer.weight, gain=0.01)
 
 ### 强化学习环境
 ```bash
-# 推荐：新版本gymnasium
+# 统一使用gymnasium库
 pip install gymnasium[classic_control]
-
-# 或者：旧版本gym
-pip install gym==0.21.0
 ```
 
 ### 可选加速
@@ -463,6 +457,6 @@ python -c "import torch; import gymnasium; print('安装成功！')"
 
 ---
 
-**项目维护者**: [您的名字]
-**最后更新**: 2024年8月
+**项目维护者**: [POPO]
+**最后更新**: 2025年8月
 **许可证**: MIT License

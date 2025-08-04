@@ -4,7 +4,7 @@ import torch.nn.functional as F  # 导入PyTorch中的函数性工具
 import numpy as np  # 导入数值计算库
 import random  # 导入随机数生成库
 import matplotlib.pyplot as plt  # 导入绘图库
-import gym  # 导入OpenAI Gym强化学习环境
+import gymnasium as gym  # 统一使用gymnasium库
 import rl_utils  # 导入自定义的强化学习工具库
 from tqdm import tqdm  # 添加tqdm用于显示进度条
 

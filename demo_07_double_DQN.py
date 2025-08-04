@@ -1,6 +1,6 @@
 # 导入必要的库
 import random  # 用于生成随机数
-import gym     # 强化学习环境库
+import gymnasium as gym  # 统一使用gymnasium库
 import numpy as np  # 数值计算库
 import torch   # 深度学习框架
 import torch.nn.functional as F  # PyTorch的函数库

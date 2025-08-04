@@ -1,5 +1,5 @@
 import random
-import gym  # 将gym替换为gymnasium
+import gymnasium as gym  # 统一使用gymnasium库
 import numpy as np
 import collections
 from tqdm import tqdm  # 进度条显示

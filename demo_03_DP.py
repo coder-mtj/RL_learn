@@ -738,7 +738,7 @@ print("\n" + "="*80)
 print("FrozenLake环境 - 策略迭代算法测试")
 print("="*80)
 
-import gym
+import gymnasium as gym  # 统一使用gymnasium库
 
 # 步骤1：创建FrozenLake环境
 env = gym.make("FrozenLake-v1")  # 创建冰湖环境（4x4网格）

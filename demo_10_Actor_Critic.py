@@ -1,5 +1,5 @@
 # 导入必要的库
-import gym  # 导入OpenAI Gym强化学习环境
+import gymnasium as gym  # 统一使用gymnasium库
 import torch  # 导入PyTorch深度学习框架
 import torch.nn.functional as F  # 导入PyTorch中的函数性工具
 import numpy as np  # 导入NumPy数值计算库

@@ -1,10 +1,7 @@
 # 导入必要的库
 import torch  # PyTorch深度学习框架
 import numpy as np  # 数值计算库
-try:
-    import gymnasium as gym  # 新版本的gym库
-except ImportError:
-    import gym  # 如果没有gymnasium，使用旧版本gym
+import gymnasium as gym  # 统一使用gymnasium库
 import matplotlib.pyplot as plt  # 绘图库
 import torch.nn.functional as F  # PyTorch函数式API
 import copy  # 深拷贝模块
@@ -620,16 +617,8 @@ def train_on_policy_agent(env, agent, num_episodes):
                     'dones': []        # 终止标志序列
                 }
 
-                # 重置环境获得初始状态，兼容不同版本的gym/gymnasium
-                try:
-                    # 新版本gymnasium的重置方法，返回(observation, info)
-                    state, _ = env.reset()
-                except (TypeError, ValueError):
-                    # 旧版本gym的重置方法，可能只返回observation
-                    state = env.reset()
-                    # 处理某些环境返回tuple的情况
-                    if isinstance(state, tuple):
-                        state = state[0]
+                # 重置环境获得初始状态，使用gymnasium API
+                state, _ = env.reset()
 
                 # 初始化episode终止标志
                 done = False
@@ -639,18 +628,10 @@ def train_on_policy_agent(env, agent, num_episodes):
                     # 使用当前策略选择动作
                     action = agent.take_action(state)
 
-                    # 在环境中执行动作，兼容不同版本的gym/gymnasium
-                    step_result = env.step(action)
-
-                    # 处理不同版本gym返回值的差异
-                    if len(step_result) == 5:
-                        # 新版本gymnasium返回5个值：(obs, reward, terminated, truncated, info)
-                        next_state, reward, terminated, truncated, _ = step_result
-                        # 合并两种终止状态：terminated(任务完成) 或 truncated(时间限制)
-                        done = terminated or truncated
-                    else:
-                        # 旧版本gym返回4个值：(obs, reward, done, info)
-                        next_state, reward, done, _ = step_result
+                    # 在环境中执行动作，使用gymnasium API
+                    next_state, reward, terminated, truncated, _ = env.step(action)
+                    # 合并两种终止状态：terminated(任务完成) 或 truncated(时间限制)
+                    done = terminated or truncated
 
                     # 存储当前步的经验数据
                     transition_dict['states'].append(state)           # 当前状态
@@ -756,18 +737,9 @@ print(f"动作范围: [{env.action_space.low[0]:.2f}, {env.action_space.high[0]:
 torch.manual_seed(0)     # 设置PyTorch随机种子
 np.random.seed(0)        # 设置NumPy随机种子
 
-# 重置环境并设置种子，兼容不同版本的gym/gymnasium
-try:
-    # 新版本gymnasium的API
-    state, _ = env.reset(seed=0)
-    print("使用Gymnasium API")
-except TypeError:
-    # 旧版本gym的API
-    env.seed(0)
-    state = env.reset()
-    if isinstance(state, tuple):
-        state = state[0]
-    print("使用Gym API")
+# 重置环境并设置种子，使用gymnasium API
+state, _ = env.reset(seed=0)
+print("使用Gymnasium API")
 
 # 创建TRPO智能体实例
 print("创建TRPO智能体...")

@@ -1,7 +1,7 @@
 # 导入必要的库
 import torch  # PyTorch深度学习框架
 import numpy as np  # 数值计算库
-import gym  # 强化学习环境库
+import gymnasium as gym  # 统一使用gymnasium库
 import matplotlib.pyplot as plt  # 绘图库
 import torch.nn.functional as F  # PyTorch函数式API
 import copy  # 深拷贝模块
