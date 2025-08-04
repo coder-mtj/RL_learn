@@ -4,6 +4,7 @@ import torch  # 导入PyTorch深度学习框架
 import torch.nn.functional as F  # 导入PyTorch中的函数性工具
 import numpy as np  # 导入NumPy数值计算库
 import matplotlib.pyplot as plt  # 导入Matplotlib绘图库
+import rl_utils  # 导入自定义的强化学习工具库
 
 class PolicyNet(torch.nn.Module):
     """Actor网络，用于生成动作的概率分布。
@@ -182,79 +183,6 @@ class ActorCritic:
         # 更新Critic的参数
         self.critic_optimizer.step()
 
-def train_on_policy_agent(env, agent, num_episodes):
-    """训练在线策略智能体的函数
-
-    Args:
-        env: gym环境实例
-        agent: 强化学习智能体实例
-        num_episodes (int): 总训练回合数
-
-    Returns:
-        list: 每个回合的累积奖励列表
-    """
-    from tqdm import tqdm  # 导入进度条库
-    return_list = []  # 存储每个回合的累积奖励
-
-    for i in range(10):  # 将总回合数分成10个部分
-        with tqdm(total=int(num_episodes/10), desc=f'Iteration {i}') as pbar:
-            for i_episode in range(int(num_episodes/10)):
-                episode_return = 0  # 当前回合的累积奖励
-                transition_dict = {
-                    'states': [],
-                    'actions': [],
-                    'next_states': [],
-                    'rewards': [],
-                    'dones': []
-                }
-
-                state, _ = env.reset()  # 重置环境，获取初始状态
-                done = False  # 回合是否结束的标志
-
-                while not done:  # 一个回合的交互循环
-                    action = agent.take_action(state)  # 选择动作
-                    # 执行动作，获取环境反馈
-                    next_state, reward, terminated, truncated, _ = env.step(action)
-                    done = terminated or truncated  # 合并两种终止状态
-                    # 收集训练数据
-                    transition_dict['states'].append(state)
-                    transition_dict['actions'].append(action)
-                    transition_dict['next_states'].append(next_state)
-                    transition_dict['rewards'].append(reward)
-                    transition_dict['dones'].append(done)
-
-                    state = next_state  # 更新状态
-                    episode_return += reward  # 累积奖励
-
-                return_list.append(episode_return)  # 保存当前回合的累积奖励
-                agent.update(transition_dict)  # 更新智能体
-
-                if (i_episode + 1) % 10 == 0:  # 每10个回合更新一次进度条
-                    pbar.set_postfix({
-                        'episode': f'{num_episodes/10 * i + i_episode+1}',
-                        'return': f'{np.mean(return_list[-10:]):.3f}'
-                    })
-                pbar.update(1)
-
-    return return_list
-
-def moving_average(a, window_size):
-    """计算数组的移动平均值
-
-    Args:
-        a (np.array): 输入数组
-        window_size (int): 移动平均的窗口大小
-
-    Returns:
-        np.array: 移动平均后的数组
-    """
-    cumulative_sum = np.cumsum(np.insert(a, 0, 0))  # 计算累积和
-    middle = (cumulative_sum[window_size:] - cumulative_sum[:-window_size]) / window_size
-    r = np.arange(1, window_size-1, 2)
-    begin = np.cumsum(a[:window_size-1])[::2] / r
-    end = (np.cumsum(a[:-window_size:-1])[::2] / r)[::-1]
-    return np.concatenate((begin, middle, end))
-
 # 设置超参数
 actor_lr = 1e-3  # Actor网络的学习率
 critic_lr = 1e-2  # Critic网络的学习率
@@ -273,30 +201,29 @@ torch.manual_seed(0)  # 设置PyTorch的随机种子
 np.random.seed(0)  # 设置NumPy的随机种子
 state, _ = env.reset(seed=0)  # 重置环境并设置环境的随机种子
 
-# 创建Actor-Critic智能体
+# 获取环境的状态维度和动作维度
 state_dim = env.observation_space.shape[0]  # 状态空间维度
 action_dim = env.action_space.n  # 动作空间维度
+# 创建Actor-Critic智能体
 agent = ActorCritic(state_dim, hidden_dim, action_dim, actor_lr, critic_lr,
                     gamma, device)
 
 # 训练智能体
-return_list = train_on_policy_agent(env, agent, num_episodes)
+return_list = rl_utils.train_on_policy_agent(env, agent, num_episodes)
 
-# 绘制结果
-episodes_list = list(range(len(return_list)))
-plt.plot(episodes_list, return_list)
-plt.xlabel('Episodes')
-plt.ylabel('Returns')
-plt.title('Actor-Critic on {}'.format(env_name))
-plt.show()
+# 绘制训练曲线
+episodes_list = list(range(len(return_list)))  # 创建回合数列表
+plt.plot(episodes_list, return_list)  # 绘制训练回报曲线
+plt.xlabel('Episodes')  # 设置x轴标签
+plt.ylabel('Returns')  # 设置y轴标签
+plt.title('Actor-Critic on {}'.format(env_name))  # 设置图标标题
+plt.show()  # 显示图像
 
-# 计算移动平均并绘制
-mv_return = moving_average(return_list, 9)
-plt.plot(episodes_list, mv_return)
-plt.xlabel('Episodes')
-plt.ylabel('Returns')
-plt.title('Actor-Critic on {}'.format(env_name))
-plt.show()
+# 计算并绘制移动平均回报曲线
+mv_return = rl_utils.moving_average(return_list, 9)  # 计算移动平均
+plt.plot(episodes_list, mv_return)  # 绘制移动平均曲线
+plt.xlabel('Episodes')  # 设置x轴标签
+plt.ylabel('Returns')  # 设置y轴标签
+plt.title('Actor-Critic on {}'.format(env_name))  # 设置图标标题
+plt.show()  # 显示图像
 
-# 关闭环境
-env.close()

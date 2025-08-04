@@ -74,21 +74,38 @@ class ValueNet(torch.nn.Module):
 def compute_advantage(gamma, lmbda, td_delta):
     """计算广义优势估计（GAE）
 
+    这是一个计算广义优势估计（GAE）的函数，用于评估每个状态-动作对的优势值。
+    GAE结合了n步优势估计的思想，通过指数加权平均的方式减少方差同时控制偏差。
+
+    算法步骤：
+    1. 将TD误差转换为NumPy数组
+    2. 从后向前计算优势值，使用折扣因子和GAE参数
+    3. 将结果转换回PyTorch张量
+
     Args:
-        gamma: float, 折扣因子
-        lmbda: float, GAE的平滑参数
-        td_delta: torch.Tensor, 时序差分误差
+        gamma (float): 折扣因子，用于计算未来奖励的现值，通常接近1（如0.99）
+        lmbda (float): GAE平滑参数，控制偏差-方差权衡，取值范围[0,1]
+        td_delta (torch.Tensor): 时序差分误差，即r + γV(s') - V(s)
 
     Returns:
-        torch.Tensor: 计算得到的优势函数值
+        torch.Tensor: 计算得到的优势函数值，每个时间步一个值
+
+    Note:
+        当λ=0时，等价于单步TD误差
+        当λ=1时，等价于蒙特卡洛估计
     """
+    # 将TD误差转换为NumPy数组以便计算
     td_delta = td_delta.detach().numpy()
     advantage_list = []
     advantage = 0.0
+    # 从后向前计算GAE
     for delta in td_delta[::-1]:
+        # 使用递推公式：A_t = δ_t + (γλ)A_(t+1)
         advantage = gamma * lmbda * advantage + delta
         advantage_list.append(advantage)
+    # 反转列表使其按时间顺序排列
     advantage_list.reverse()
+    # 转换回PyTorch张量并返回
     return torch.tensor(advantage_list, dtype=torch.float)
 
 
@@ -112,7 +129,7 @@ class TRPO:
                  kl_constraint, alpha, critic_lr, gamma, device):
         # 从环境空间获取维度信息
         state_dim = state_space.shape[0]  # 状态空间维度
-        action_dim = action_space.n  # 动作空间维度（���散）
+        action_dim = action_space.n  # 动作空间维度（离散）
 
         # 创建演员（策略）网络并移至指定设备
         self.actor = PolicyNet(state_dim, hidden_dim, action_dim).to(device)
@@ -155,6 +172,7 @@ class TRPO:
         """计算Hessian矩阵与向量的乘积
 
         使用自动微分计算KL散度的二阶导数与向量的乘积。
+        *** 这个函数隐式计算 H·v，其中H是Hessian矩阵，v是输入向量 ***
 
         Args:
             states (torch.Tensor): 状态批次
@@ -162,9 +180,14 @@ class TRPO:
             vector (torch.Tensor): 需要计算乘积的向量
 
         Returns:
-            torch.Tensor: Hessian矩阵与输入向量的乘积
+            torch.Tensor: Hessian矩阵与输入向量的乘积 (H·v)
         """
         # 使用当前策略生成新的动作分布
+        # self.actor(states)生成策略网络的输出（动作概率）
+        # *** 这里涉及Hessian算法中的三个重要组件： ***
+        # *** 1. g = ▽L(θ): 目标函数L(θ)对策略参数θ的一阶导数（梯度向量） ***
+        # *** 2. H: KL散度D_KL(θ_old || θ)对参数θ的二阶导数（Hessian矩阵） ***
+        # *** 3. x: 最终要求解的方向，满足Hx = g（Fisher信息矩阵与策略梯度的关系） ***
         new_action_dists = torch.distributions.Categorical(self.actor(states))
         # 计算新旧策略间的平均KL散度
         kl = torch.mean(torch.distributions.kl.kl_divergence(
@@ -190,27 +213,33 @@ class TRPO:
         解决方程 Hx = g，其中H是KL散度的Hessian矩阵，g是目标函数的梯度。
 
         Args:
-            grad (torch.Tensor): 目标函数关于策略参数的梯度
+            grad (torch.Tensor): 目标函数关于策略参数的梯度 (g)
             states (torch.Tensor): 状态批次
             old_action_dists (torch.distributions.Categorical): 旧策略的动作分布
 
         Returns:
-            torch.Tensor: 方程的解
+            torch.Tensor: 方程的解 (x)
 
         Note:
             这里使用共轭梯度法避免直接计算和存储Hessian矩阵
+            *** 求解 Hx = g 方程，其中: ***
+            *** H: KL散度的Hessian矩阵 (隐式通过hessian_matrix_vector_product计算) ***
+            *** g: 目标函数的梯度向量 (输入参数grad) ***
+            *** x: 要求解的向量 (返回值) ***
         """
-        # 初始化解向量x为0向量
+        # *** 初始化解向量x为0向量 (Hessian算法中的x) ***
         x = torch.zeros_like(grad)
         # 初始化残差r和搜索方向p
+        # *** r: 残差向量，初始值为g (目标函数梯度) ***
         r = grad.clone()
+        # *** p: 搜索方向向量 ***
         p = grad.clone()
         # 计算初始残差的模平方
         rdotr = torch.dot(r, r)
 
         # 共轭梯度主循环
         for i in range(10):
-            # 计算Hp
+            # *** 计算Hp: Hessian矩阵H与搜索方向p的乘积 ***
             Hp = self.hessian_matrix_vector_product(states, old_action_dists, p)
             # 计算步长
             alpha = rdotr / torch.dot(p, Hp)
@@ -310,7 +339,7 @@ class TRPO:
         使用TRPO算法的核心步骤更新策略网络，包括：
         1. 计算替代目标函数
         2. 使用共轭梯度法计算更新方向
-        3. 进行线性搜索���确保更新满足约束
+        3. 进行线性搜索确保更新满足约束
 
         Args:
             states (torch.Tensor): 状态批次
@@ -330,17 +359,20 @@ class TRPO:
         # 计算目标函数关于策略参数的梯度
         grads = torch.autograd.grad(surrogate_obj, self.actor.parameters())
         # 将所有梯度展平并连接成一个向量，同时分离计算图
+        # *** g: 目标函数的梯度向量 (Hessian算法中的g) ***
         obj_grad = torch.cat([grad.view(-1) for grad in grads]).detach()
 
         # 使用共轭梯度法计算更新方向：解决 Hx = g，其中H是KL散度的Hessian矩阵
+        # *** x: 求解方程Hx=g的解向量 (Hessian算法中的x) ***
         descent_direction = self.conjugate_gradient(obj_grad, states,
                                                   old_action_dists)
 
         # 计算Hessian矩阵与下降方向的乘积
+        # *** H: KL散度的Hessian矩阵 (通过hessian_matrix_vector_product隐式计算Hx) ***
         Hd = self.hessian_matrix_vector_product(states, old_action_dists,
                                                descent_direction)
 
-        # 计算最大步��，确保满足KL散度约束
+        # 计算最大步，确保满足KL散度约束
         max_coef = torch.sqrt(2 * self.kl_constraint /
                             (torch.dot(descent_direction, Hd) + 1e-8))
 
