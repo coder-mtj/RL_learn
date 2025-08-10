@@ -29,6 +29,7 @@
 
 ### 模仿学习方法
 - `demo_17_behavior_cloning.py`: 行为克隆（Behavior Cloning）算法实现，包含PPO专家训练和BC模仿学习对比
+- `demo_18_GAIL.py`: GAIL（生成对抗模仿学习）算法实现，通过对抗训练学习专家策略
 
 ## 算法说明
 
@@ -117,15 +118,52 @@ bc_loss = torch.mean(-log_probs)  # 负对数似然损失
 - 专家数据依赖：性能受限于专家数据质量和数量
 - **应用场景**: 自动驾驶、机器人控制、游戏AI
 
+### GAIL算法
+GAIL（Generative Adversarial Imitation Learning）是一种基于生成对抗网络的模仿学习方法：
+
+- **demo_18_GAIL.py**: 完整的GAIL实现，包含PPO专家训练、判别器网络和对抗训练
+
+**GAIL损失函数**：
+```python
+# 判别器损失（二分类损失）
+discriminator_loss = nn.BCELoss()(agent_prob, torch.ones_like(agent_prob)) + \
+                    nn.BCELoss()(expert_prob, torch.zeros_like(expert_prob))
+
+# 智能体奖励（欺骗判别器）
+rewards = -torch.log(agent_prob)  # 鼓励智能体欺骗判别器
+
+# PPO策略更新（使用GAIL奖励）
+actor_loss = -torch.min(ratio * advantage, clipped_ratio * advantage)
+```
+
+**数学原理**：
+```
+判别器目标: max E[log D(s,a)] + E[log(1-D(s,a))]
+                专家数据        智能体数据
+
+生成器目标: max E[log D(s,a)]  (欺骗判别器)
+              智能体数据
+
+GAIL奖励: r(s,a) = -log(1-D(s,a)) ≈ -log D(s,a)
+```
+
+**核心特点**：
+- 对抗训练范式：判别器区分专家和智能体，智能体欺骗判别器
+- 无需奖励函数：通过对抗训练自动学习奖励信号
+- 理论保证：收敛到专家策略的分布
+- 样本效率：相比BC需要更少的专家数据
+- **应用场景**: 复杂控制任务、机器人学习、自动驾驶
+
 ## 🔍 损失函数对比分析
 
-### 三种算法的损失函数本质区别
+### 四种算法的损失函数本质区别
 
 | 算法 | 损失函数类型 | 数学基础 | 优化目标 | 网络结构 |
 |------|-------------|----------|----------|----------|
 | **PPO** | 截断代理目标 | 策略梯度 + 信任域 | 最大化期望回报（有约束） | Actor + Critic |
 | **SAC** | 最大熵目标 | 策略梯度 + 最大熵 | 最大化期望回报 + 熵 | Actor + 双Critic |
 | **BC** | 负对数似然 | 最大似然估计 | 最大化专家动作概率 | 仅Policy |
+| **GAIL** | 对抗损失 | 生成对抗网络 + 策略梯度 | 匹配专家状态-动作分布 | Actor + Critic + Discriminator |
 
 ### 详细对比
 
@@ -156,6 +194,16 @@ bc_loss = -torch.mean(log_probs)  # 等价于交叉熵
 - **适用**：有高质量专家演示的任务
 - **优势**：训练简单，无需奖励函数
 
+**4. GAIL - 对抗学习（模仿学习）**
+```python
+# 核心：通过对抗训练匹配专家分布
+discriminator_loss = BCE(D(s_agent,a_agent), 1) + BCE(D(s_expert,a_expert), 0)
+gail_reward = -log(D(s_agent, a_agent))  # 欺骗判别器的奖励
+```
+- **特点**：结合GAN和强化学习，自动学习奖励函数
+- **适用**：复杂任务，专家数据有限的场景
+- **优势**：理论保证，样本效率高，无需手工设计奖励
+
 ### 损失函数的数学含义
 
 **PPO损失函数**：
@@ -169,6 +217,10 @@ bc_loss = -torch.mean(log_probs)  # 等价于交叉熵
 **BC损失函数**：
 - 目标：`max ∏P(a_expert|s)`
 - 含义：最大化在专家状态下选择专家动作的概率
+
+**GAIL损失函数**：
+- 目标：`min_G max_D E[log D(s,a)] + E[log(1-D(s,a))]`
+- 含义：通过对抗训练使智能体分布匹配专家分布
 
 ## 使用说明
 
@@ -195,6 +247,11 @@ agent = PPO(...)               # 离散动作算法
 # 1. 先训练专家（PPO）
 # 2. 采样专家数据
 # 3. 训练BC智能体
+
+# ✅ GAIL正确使用
+# 1. 先训练专家（PPO）
+# 2. 采样专家数据
+# 3. 训练判别器和GAIL智能体（对抗训练）
 ```
 
 
@@ -216,12 +273,16 @@ agent = PPO(...)               # 离散动作算法
 ### 模仿学习方法
 6. **行为克隆综述**: Pomerleau, D. A. (1991). Efficient training of artificial neural networks for autonomous navigation. Neural computation, 3(1), 88-97.
 
-7. **模仿学习理论**: Ross, S., Gordon, G., & Bagnell, D. (2011). A reduction of imitation learning and structured prediction to no-regret online learning. In Proceedings of the fourteenth international conference on artificial intelligence and statistics (pp. 627-635).
+7. **GAIL原始论文**: Ho, J., & Ermon, S. (2016). Generative adversarial imitation learning. Advances in neural information processing systems, 29.
+
+8. **模仿学习理论**: Ross, S., Gordon, G., & Bagnell, D. (2011). A reduction of imitation learning and structured prediction to no-regret online learning. In Proceedings of the fourteenth international conference on artificial intelligence and statistics (pp. 627-635).
 
 ### 基础理论
-8. **策略梯度综述**: Sutton, R. S., McAllester, D., Singh, S., & Mansour, Y. (1999). Policy gradient methods for reinforcement learning with function approximation. Advances in neural information processing systems, 12.
+9. **策略梯度综述**: Sutton, R. S., McAllester, D., Singh, S., & Mansour, Y. (1999). Policy gradient methods for reinforcement learning with function approximation. Advances in neural information processing systems, 12.
 
-9. **OpenAI实现参考**: Dhariwal, P., Hesse, C., Klimov, O., Nichol, A., Plappert, M., Radford, A., ... & Wu, J. (2017). OpenAI baselines. GitHub repository.
+10. **生成对抗网络**: Goodfellow, I., Pouget-Abadie, J., Mirza, M., Xu, B., Warde-Farley, D., Ozair, S., ... & Bengio, Y. (2014). Generative adversarial nets. Advances in neural information processing systems, 27.
+
+11. **OpenAI实现参考**: Dhariwal, P., Hesse, C., Klimov, O., Nichol, A., Plappert, M., Radford, A., ... & Wu, J. (2017). OpenAI baselines. GitHub repository.
 
 ---
 
